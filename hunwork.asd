@@ -7,4 +7,4 @@
 
 (defsystem :hunwork
   :depends-on (:hunchentoot)
-  :components ((:file "")))
+  :components ((:file "hunwork")))
