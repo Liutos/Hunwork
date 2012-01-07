@@ -2,7 +2,9 @@
   (:use :cl :hunchentoot)
   (:export :start-server
 	   :stop-server
-	   :define-regex-dispatcher))
+	   :define-regex-dispatcher
+	   :get-all-post-paras
+	   :with-post-parameter))
 
 (in-package :hunwork)
 
@@ -65,3 +67,12 @@
 		      ',regex))
 	    (t `(add-regex-dispatcher ,regex ',name)))
      t))
+
+(defun get-all-post-paras ()
+  (post-parameters*))
+
+(defmacro with-post-parameter (vars &body body)
+  `(let ,(mapcar #'(lambda (var)
+		     `(,var (post-parameter ,(format nil "~(~A~)" var))))
+		 vars)
+     ,@body))
