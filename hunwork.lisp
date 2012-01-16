@@ -4,14 +4,17 @@
 	   :stop-server
 	   :define-regex-dispatcher
 	   :get-all-post-paras
-	   :with-post-parameter))
+	   :with-post-parameter
+	   :print-user-defined-dispatcher))
 
 (in-package :hunwork)
 
 (let ((acceptor nil))
-  (defun start-acceptor (&optional (port 8080))
+  (defun start-acceptor (&optional (port 8080) (log-p nil))
     (unless acceptor
-      (setf acceptor (make-instance 'acceptor :port port)))
+      (setf acceptor (make-instance 'easy-acceptor
+				    :port port
+				    :access-log-destination log-p)))
     (start acceptor))
   (defun stop-acceptor ()
     (stop acceptor)
