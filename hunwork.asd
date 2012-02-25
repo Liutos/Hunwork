@@ -6,5 +6,5 @@
 (in-package :hunwork-system)
 
 (defsystem :hunwork
-  :depends-on (:hunchentoot)
+  :depends-on (:hunchentoot :cl-who)
   :components ((:file "hunwork")))

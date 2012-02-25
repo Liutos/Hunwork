@@ -1,11 +1,14 @@
 (defpackage :hunwork
-  (:use :cl :hunchentoot)
-  (:export :start-server
+  (:use :cl :hunchentoot :cl-who)
+  (:export :start-server		;Functions
 	   :stop-server
-	   :define-regex-dispatcher
 	   :get-all-post-paras
+	   :print-user-defined-dispatcher
+	   :get-request-uri
+	   :define-regex-dispatcher	;Macros
 	   :with-post-parameter
-	   :print-user-defined-dispatcher))
+	   :with-login-let
+	   ))
 
 (in-package :hunwork)
 
@@ -20,12 +23,12 @@
     (stop acceptor)
     (setf acceptor nil)))
 
-(defun start-server (&optional (port 8080))
+(defun start-server (&optional (port 8080) (log-p nil))
   (setf *default-content-type* "text/html; charset=utf-8")
   (setf *hunchentoot-default-external-format*
 	(flex:make-external-format :utf-8 :eol-style :lf))
   (setf *show-lisp-errors-p* t)
-  (start-acceptor port))
+  (start-acceptor port log-p))
 
 (defun stop-server ()
   (stop-acceptor))
@@ -79,3 +82,20 @@
 		     `(,var (post-parameter ,(format nil "~(~A~)" var))))
 		 vars)
      ,@body))
+
+(defun get-request-uri ()
+  (request-uri*))
+
+(defmacro with-login-let (vars &body body)
+  `(cond ((boundp '*session*)
+	  (let ,(mapcar #'(lambda (var)
+			    `(,var (session-value ',var)))
+			vars)
+	    ,@body))
+	 (t
+	  (with-html-output-to-string (*standard-output*)
+	    (:html
+	     (:body
+	      (:p "You must login at first. Please go to the index page for login.")
+	      (:a :href "/index.html"
+		  "Click here to return")))))))
