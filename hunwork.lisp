@@ -5,10 +5,11 @@
 	   :get-all-post-paras
 	   :print-user-defined-dispatcher
 	   :get-request-uri
+	   :page-redirect
 	   :define-regex-dispatcher	;Macros
 	   :with-post-parameter
 	   :with-login-let
-	   ))
+	   :with-session-start))
 
 (in-package :hunwork)
 
@@ -78,6 +79,7 @@
   (post-parameters*))
 
 (defmacro with-post-parameter (vars &body body)
+  "Bind the variables in the VARS for the corresponding values of the post parameters attached to the same symbol as each variable. After binding, evaluate the expression in BODY."
   `(let ,(mapcar #'(lambda (var)
 		     `(,var (post-parameter ,(format nil "~(~A~)" var))))
 		 vars)
@@ -87,6 +89,7 @@
   (request-uri*))
 
 (defmacro with-login-let (vars &body body)
+  "Ensure the HTTP request is send from a authenticated user by checking whether the symbol *session* has been bound. If bound, get some values from the session and bind them to the variables with same name. If not bound, the user will be guided to the index page."
   `(cond ((boundp '*session*)
 	  (let ,(mapcar #'(lambda (var)
 			    `(,var (session-value ',var)))
@@ -99,3 +102,16 @@
 	      (:p "You must login at first. Please go to the index page for login.")
 	      (:a :href "/index.html"
 		  "Click here to return")))))))
+
+(defmacro with-session-start (session-values &body body)
+  "Use Hunchentoot's START-SESSION function for using the session in communication. The tuple in argument SESSION-VALUES contains the symbol would be set in session and the corresponding value. Then evaluate the expression in BODY."
+  `(progn
+     (start-session)
+     (setf ,@(mapcan #'(lambda (binding)
+			 (destructuring-bind (symbol value) binding
+			   `((session-value ',symbol) ,value)))
+		     session-values))
+     ,@body))
+
+(defun page-redirect (url)
+  (redirect url))
