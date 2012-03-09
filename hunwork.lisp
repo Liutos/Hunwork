@@ -7,9 +7,11 @@
 	   :get-request-uri
 	   :page-redirect
 	   :define-regex-dispatcher	;Macros
+	   :with-get-parameter
 	   :with-post-parameter
 	   :with-login-let
-	   :with-session-start))
+	   :with-session-start
+	   :define-static-dispatcher))
 
 (in-package :hunwork)
 
@@ -75,6 +77,12 @@
 	    (t `(add-regex-dispatcher ,regex ',name)))
      t))
 
+(defmacro define-static-dispatcher (uri path)
+  `(progn
+     (push (create-static-file-dispatcher-and-handler ,uri ,path)
+	   *dispatch-table*)
+     t))
+
 (defun get-all-post-paras ()
   (post-parameters*))
 
@@ -82,6 +90,13 @@
   "Bind the variables in the VARS for the corresponding values of the post parameters attached to the same symbol as each variable. After binding, evaluate the expression in BODY."
   `(let ,(mapcar #'(lambda (var)
 		     `(,var (post-parameter ,(format nil "~(~A~)" var))))
+		 vars)
+     ,@body))
+
+(defmacro with-get-parameter (vars &body body)
+  "Acts like the macro WITH-POST-PARAMETER but this one is used for getting the parameters passed through the GET method."
+  `(let ,(mapcar #'(lambda (var)
+		     `(,var (get-parameter ,(format nil "~(~A~)" var))))
 		 vars)
      ,@body))
 
