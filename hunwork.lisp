@@ -1,7 +1,5 @@
 (defpackage :hunwork
   (:use :cl :hunchentoot :cl-who)
-  (:shadowing-import-from :hunchentoot
-			  :define-easy-handler)
   (:export :start-server		;Functions
 	   :stop-server
 	   :get-all-post-paras
@@ -10,7 +8,6 @@
 	   :page-redirect
 	   :quit-session*
 	   :define-regex-dispatcher	;Macros
-	   :define-easy-handler
 	   :with-get-parameter
 	   :with-post-parameter
 	   :with-login-let
@@ -148,10 +145,6 @@
 
 (defun page-redirect (url)
   (redirect url))
-
-(defmacro define-easy-handler (description lambda-list &body body)
-  `(hunchentoot:define-easy-handler ,description ,lambda-list
-     ,@body))
 
 (defun quit-session* ()
   (remove-session *session*))
