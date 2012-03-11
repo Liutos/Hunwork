@@ -31,24 +31,26 @@
 
 (defvar *acceptor* nil
   "The variable stores the acceptor used in the current web server process. The previous version's START-ACCEPTOR and STOP-ACCEPTOR function operates on a lexical variable defined in a let special-form which is hard to modify when testing code.")
-(defun start-acceptor (&optional (port 8080) (log-p nil) (address "localhost"))
+(defun start-acceptor (&optional (port 8080) (log-p nil) (address "localhost")
+		       (msg-log-p nil))
   (unless *acceptor*
     (setf *acceptor* (make-instance 'easy-acceptor
 				    :address address
 				    :port port
 				    :access-log-destination log-p
-				    :message-log-destination nil))) ;I try to prevent the Hunchentoot from generating the warnings when a unidentified session ID.
+				    :message-log-destination msg-log-p))) ;I try to prevent the Hunchentoot from generating the warnings when a unidentified session ID.
   (start *acceptor*))
 (defun stop-acceptor ()
   (stop *acceptor*)
   (setf *acceptor* nil))
 
-(defun start-server (&optional (port 8080) (log-p nil) (address "localhost"))
+(defun start-server (&optional (port 8080) (log-p nil) (address "localhost")
+		     (msg-log-p nil))
   (setf *default-content-type* "text/html; charset=utf-8")
   (setf *hunchentoot-default-external-format*
 	(flex:make-external-format :utf-8 :eol-style :lf))
   (setf *show-lisp-errors-p* t)
-  (start-acceptor port log-p address))
+  (start-acceptor port log-p address msg-log-p))
 
 (defun stop-server ()
   (stop-acceptor))
