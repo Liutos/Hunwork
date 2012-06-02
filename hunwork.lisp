@@ -138,15 +138,15 @@
   "Use Hunchentoot's START-SESSION function for using the session in communication. The tuple in argument SESSION-VALUES contains the symbol would be set in session and the corresponding value. Then evaluate the expression in BODY."
   `(progn
      (reset-session-secret)
-     (start-session)
      (setf ,@(mapcan #'(lambda (binding)
 			 (destructuring-bind (symbol value) binding
 			   `((session-value ',symbol) ,value)))
 		     session-values))
+     (start-session)
      ,@body))
 
-(defun page-redirect (url)
-  (redirect url))
+(defun page-redirect (url &key (add-session-id nil))
+  (redirect url :add-session-id add-session-id))
 
 (defun quit-session* ()
   (remove-session *session*))
