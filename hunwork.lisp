@@ -12,7 +12,8 @@
 	   :with-post-parameter
 	   :with-login-let
 	   :with-session-start
-	   :define-static-dispatcher))
+	   :define-static-dispatcher
+	   :define-folder-dispatcher))
 
 (in-package :hunwork)
 
@@ -150,3 +151,9 @@
 
 (defun quit-session* ()
   (remove-session *session*))
+
+(defmacro define-folder-dispatcher (uri-prefix base-path)
+  `(progn
+     (push (create-folder-dispatcher-and-handler ,uri-prefix ,base-path)
+	   *dispatch-table*)
+     t))
