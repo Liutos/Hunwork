@@ -210,6 +210,11 @@
                          :verb verb)
           *routes*)))
 
+(defun parse-qs (str)
+  (mapcar #'(lambda (kv)
+              (cl-ppcre:split "=" kv))
+          (cl-ppcre:split "&" str)))
+
 ;;; Public functions
 (defmacro define-easy-handler (description lambda-list &body body)
   (multiple-value-bind (name description verb uri)
@@ -252,6 +257,21 @@
                             (uri (parse-string regex)))
                        `(ensure-route ,verb ,path ',uri ',handler))))
                body)))
+
+(defmacro with-http-body ((vars &key
+                                (force-text t)
+                                (parser)) &body body)
+  (assert (member parser '(:json :qs :raw)))
+  (ecase parser
+    (:qs (let ((b (gensym))
+               (qs (gensym)))
+           `(let* ((,b (raw-post-data :force-text ,force-text))
+                   (,qs (parse-qs ,b))
+                   ,@(mapcar #'(lambda (var)
+                                 `(,var (second (assoc ,(string-downcase (symbol-name var)) ,qs :test #'string=))))
+                             vars))
+              ,@body)))
+    (:raw)))
 
 (defun clear-routes ()
   (setf *routes* '()))

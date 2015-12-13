@@ -21,4 +21,5 @@
            #:print-routes
            #:render
            #:start
-           #:stop))
+           #:stop
+           #:with-http-body))
