@@ -154,7 +154,7 @@
      :for (k . v) :in (post-parameters*)
      :do (format t "[DEBUG / ~(~A~)] ~S = ~S~%" __func__ k v)))
 
-(defmacro with-io-control (lambda-list expr)
+(defmacro with-io-control (lambda-list decls expr)
   (let ((response (gensym)))
     `(let ,(mapcar #'(lambda (var)
                        (if (consp var)
@@ -168,6 +168,9 @@
          (debug-headers-in)
          (debug-post-parameters)
          (setf ,response (progn ,expr))
+         ,(when decls
+            `(unless (typep ,response 'response)
+               (setf ,response (render ,(intern (symbol-name (getf decls 'format)) :keyword) ,response))))
          (cond ((typep ,response 'response)
                 (setf (content-type*) (response-content-type ,response))
                 (response-body ,response))
@@ -210,6 +213,20 @@
                          :verb verb)
           *routes*)))
 
+(defun parse-handler-body (body)
+  (let (decls rbody)
+    (dolist (expr body)
+      (if (and (listp expr)
+               (eq 'declare (first expr))
+               (listp (second expr))
+               (member (first (second expr)) '(format)))
+          (progn
+            (push (first (second expr)) decls)
+            (push (second (second expr)) decls))
+          (push expr rbody)))
+    (values (nreverse decls)
+            (nreverse rbody))))
+
 (defun parse-qs (str)
   (mapcar #'(lambda (kv)
               (cl-ppcre:split "=" kv))
@@ -228,11 +245,12 @@
   (bind (((:values args defs) (parse-lambda-list lambda-list))
          (handler (intern (format nil "~A/~A" verb name)))
          ((:values uriargs regex keys) (parse-vars-and-uri path))
-         (uri (parse-string regex)))
+         (uri (parse-string regex))
+         ((:values decls body) (parse-handler-body body)))
     `(progn
        (defun ,name ,lambda-list ,@body)
        (defun ,handler ()
-         (with-io-control ,defs
+         (with-io-control ,defs ,decls
            ,(if uriargs
                 (let ((result (gensym)))
                   `(let (,result)
