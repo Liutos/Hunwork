@@ -22,4 +22,10 @@
            #:render
            #:start
            #:stop
+           #:ver=
+           #:ver<
+           #:ver>
+           #:ver<=
+           #:ver>=
+           #:ver/=
            #:with-http-body))

@@ -1,0 +1,22 @@
+(in-package :com.liutos.fw)
+
+(defun ver-compare (v1 v2)
+  "Compare two version strings. Return 1 or 0 or -1 when `v1' is greater or equal or smaller than `v2'."
+  (let ((vp1 (split "\\." v1))
+        (vp2 (split "\\." v2)))
+    (mapc #'(lambda (p1 p2)
+              (let ((n1 (parse-integer p1))
+                    (n2 (parse-integer p2)))
+                (cond ((> n1 n2)
+                       (return-from ver-compare 1))
+                      ((< n1 n2)
+                       (return-from ver-compare -1)))))
+          vp1 vp2)
+    0))
+
+(defun ver= (v1 v2) (= (ver-compare v1 v2) 0))
+(defun ver< (v1 v2) (< (ver-compare v1 v2) 0))
+(defun ver> (v1 v2) (> (ver-compare v1 v2) 0))
+(defun ver<= (v1 v2) (<= (ver-compare v1 v2) 0))
+(defun ver>= (v1 v2) (>= (ver-compare v1 v2) 0))
+(defun ver/= (v1 v2) (/= (ver-compare v1 v2) 0))
