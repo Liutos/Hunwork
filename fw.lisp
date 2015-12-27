@@ -278,7 +278,7 @@
 
 (defmacro with-http-body ((vars &key
                                 (force-text t)
-                                (parser)) &body body)
+                                (parser :raw)) &body body)
   (assert (member parser '(:json :qs :raw)))
   (ecase parser
     (:qs (let ((b (gensym))
@@ -289,7 +289,8 @@
                                  `(,var (second (assoc ,(string-downcase (symbol-name var)) ,qs :test #'string=))))
                              vars))
               ,@body)))
-    (:raw)))
+    (:raw `(let ((,vars (raw-post-data :force-text ,force-text)))
+             ,@body))))
 
 (defun clear-routes ()
   (setf *routes* '()))
