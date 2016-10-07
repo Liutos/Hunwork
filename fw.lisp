@@ -26,6 +26,22 @@
                  (return-from handle-env (funcall handler env)))))))
     (handle-not-found env)))
 
+(defun push-router (method path handler)
+  (push (list
+         method
+         (cl-ppcre:parse-string path)
+         handler)
+        *routers*))
+
+(defun respond (body
+                &key
+                  (code 200)
+                  (content-type "text/plain"))
+  (list
+   code
+   (list :content-type content-type)
+   (list body)))
+
 (defun start-app ()
   (setf *handler*
         (clackup

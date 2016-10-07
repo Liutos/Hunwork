@@ -17,36 +17,24 @@
       (return-from object-get x))))
 
 (defun handler/get (env)
-  (let ((request-uri (getf env :request-uri)))
-    (list
-     200
-     '(:content-type "text/plain")
+  (respond
+   (let ((request-uri (getf env :request-uri)))
      (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
        (let ((obj (object-get id)))
          (if (null obj)
-             (list (json:encode-json-to-string obj))
-             (list (json:encode-json-plist-to-string obj))))))))
+             (json:encode-json-to-string obj)
+             (json:encode-json-plist-to-string obj)))))))
 
-(push (list
-       :get
-       (cl-ppcre:parse-string "/[0-9]+")
-       #'handler/get)
-      com.liutos.fw::*routers*)
+(push-router :get "/[0-9]+" #'handler/get)
 
 (defun handler/delete (env)
-  (let ((request-uri (getf env :request-uri)))
-    (list
-     200
-     '(:content-type "text/plain")
+  (respond
+   (let ((request-uri (getf env :request-uri)))
      (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
        (setf *program*
              (remove-if #'(lambda (x)
                             (= id (getf x :id)))
                         *program*))
-       (list (format nil "object with id ~D deleted" id))))))
+       (format nil "object with id ~D deleted" id)))))
 
-(push (list
-       :delete
-       (cl-ppcre:parse-string "/[0-9]+")
-       #'handler/delete)
-      com.liutos.fw::*routers*)
+(push-router :delete "/[0-9]+" #'handler/delete)
