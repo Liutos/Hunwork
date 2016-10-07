@@ -2,13 +2,9 @@
   :description "It may be a web framework for Common Lisp."
   :author "Liutos <mat.liutos@gmail.com>"
   :license "MIT"
-  :depends-on (#:alexandria
-               #:cl-json
+  :depends-on (#:cl-json
                #:cl-ppcre
-               #:hunchentoot
-               #:md5
-               #:metabang-bind)
+               #:clack)
   :serial t
   :components ((:file "package")
-               (:file "ll")
                (:file "fw")))
