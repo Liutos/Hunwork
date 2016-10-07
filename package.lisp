@@ -5,7 +5,8 @@
         #:cl-ppcre
         #:clack
         #:json)
-  (:export #:push-router
+  (:export #:define-handler
+           #:push-router
            #:respond
            #:start-app
            #:stop-app))
