@@ -16,7 +16,7 @@
     (when (= (getf x :id) id)
       (return-from object-get x))))
 
-(define-handler handler/get (env)
+(define-handler :get "/[0-9]+" handler/get (env)
   (let ((request-uri (getf env :request-uri)))
     (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
       (let ((obj (object-get id)))
@@ -24,9 +24,7 @@
             (json:encode-json-to-string obj)
             (json:encode-json-plist-to-string obj))))))
 
-(push-router :get "/[0-9]+" #'handler/get)
-
-(define-handler handler/delete (env)
+(define-handler :delete "/[0-9]+" handler/delete (env)
   (let ((request-uri (getf env :request-uri)))
     (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
       (setf *program*
@@ -34,5 +32,3 @@
                            (= id (getf x :id)))
                        *program*))
       (format nil "object with id ~D deleted" id))))
-
-(push-router :delete "/[0-9]+" #'handler/delete)

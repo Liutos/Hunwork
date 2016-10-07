@@ -4,10 +4,12 @@
 
 (defparameter *routers* nil)
 
-(defmacro define-handler (name parameters &body body)
-  `(defun ,name ,parameters
-     (respond
-      ,@body)))
+(defmacro define-handler (method path name parameters &body body)
+  `(progn
+     (defun ,name ,parameters
+       (respond
+        ,@body))
+     (push-router ,method ,path #',name)))
 
 (defun handle-not-found (env)
   (let ((request-method (getf env :request-method))
