@@ -5,11 +5,15 @@
 (defparameter *routers* nil)
 
 (defmacro define-handler (method path name parameters &body body)
-  `(progn
-     (defun ,name ,parameters
-       (respond
-        ,@body))
-     (push-router ,method ,path #',name)))
+  (let ((handler-name (intern
+                       (format nil "HANDLER/~A" (symbol-name name)))))
+    `(progn
+       (defun ,name ,parameters
+         ,@body)
+       (defun ,handler-name ,parameters
+         (respond
+          (,name ,@parameters)))
+       (push-router ,method ,path #',handler-name))))
 
 (defun handle-not-found (env)
   (let ((request-method (getf env :request-method))
@@ -20,16 +24,16 @@
      (list (format nil "NOT FOUND: ~A ~A" request-method request-uri)))))
 
 (defun handle-env (env)
-  (let ((request-method (getf env :request-method))
-        (request-uri (getf env :request-uri)))
+  (let ((path-info (getf env :path-info))
+        (request-method (getf env :request-method)))
     (dolist (x *routers*)
       (destructuring-bind (method path handler) x
         (when (eq method request-method)
           (cond ((and (stringp path)
-                      (string= path request-uri))
+                      (string= path path-info))
                  (return-from handle-env (funcall handler env)))
                 ((and (listp path)
-                      (cl-ppcre:scan path request-uri))
+                      (cl-ppcre:scan path path-info))
                  (return-from handle-env (funcall handler env)))))))
     (handle-not-found env)))
 

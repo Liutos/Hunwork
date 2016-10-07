@@ -32,3 +32,7 @@
                            (= id (getf x :id)))
                        *program*))
       (format nil "object with id ~D deleted" id))))
+
+(define-handler :get "/search" handler/search (env)
+  (declare (ignore env))
+  (json:encode-json-to-string *program*))
