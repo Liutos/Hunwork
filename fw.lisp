@@ -4,16 +4,28 @@
 
 (defparameter *routers* nil)
 
+(defun make-handler-name (name)
+  (intern (format nil "HANDLER/~A" (symbol-name name))))
+
+(defun make-getf-form (env names)
+  (flet ((f (name)
+           `(getf ,env ,(intern (symbol-name name) :keyword))))
+    (mapcar #'f names)))
+
 (defmacro define-handler (method path name parameters &body body)
-  (let ((handler-name (intern
-                       (format nil "HANDLER/~A" (symbol-name name)))))
-    `(progn
-       (defun ,name ,parameters
-         ,@body)
-       (defun ,handler-name ,parameters
-         (respond
-          (,name ,@parameters)))
-       (push-router ,method ,path #',handler-name))))
+  (let+ (((&values rs)
+          (parse-ordinary-lambda-list parameters))
+         (env (gensym))
+         (handler-name (make-handler-name name)))
+    (let ((envs (make-getf-form env rs)))
+      `(progn
+         (defun ,name ,parameters
+           ,@body)
+         (defun ,handler-name (,env)
+           (declare (ignorable ,env))
+           (respond
+            (,name ,@envs)))
+         (push-router ,method ,path #',handler-name)))))
 
 (defun handle-not-found (env)
   (let ((request-method (getf env :request-method))
