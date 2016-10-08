@@ -5,6 +5,7 @@
         #:cl
         #:cl-ppcre
         #:clack
+        #:hu.dwim.uri
         #:json
         #:let-plus)
   (:export #:define-handler

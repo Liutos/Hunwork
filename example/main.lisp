@@ -31,5 +31,7 @@
                      *program*))
     (format nil "object with id ~D deleted" id)))
 
-(define-handler :get "/search" handler/search ()
+(define-handler :get "/search" handler/search (&optional
+                                               (limit 20))
+  (format t "limit is ~D~%" limit)
   (json:encode-json-to-string *program*))

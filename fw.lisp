@@ -12,19 +12,37 @@
            `(getf ,env ,(intern (symbol-name name) :keyword))))
     (mapcar #'f names)))
 
+(defun make-query-alist (env)
+  (let* ((query-string
+          (format nil "?~A" (getf env :query-string)))
+         (queries (query-parameters-of (parse-uri query-string))))
+    (flet ((f (kv)
+             (destructuring-bind (key . value) kv
+               (cons (intern (string-upcase key) :keyword)
+                     value))))
+      (mapcar #'f queries))))
+
 (defmacro define-handler (method path name parameters &body body)
-  (let+ (((&values rs)
+  (let+ (((&values rs os)
           (parse-ordinary-lambda-list parameters))
          (env (gensym))
-         (handler-name (make-handler-name name)))
+         (handler-name (make-handler-name name))
+         (query (gensym)))
     (let ((envs (make-getf-form env rs)))
       `(progn
          (defun ,name ,parameters
            ,@body)
          (defun ,handler-name (,env)
            (declare (ignorable ,env))
-           (respond
-            (,name ,@envs)))
+           (let* ((,query (make-query-alist ,env)))
+             (respond
+              (,name
+               ,@envs
+               ,@(mapcar #'(lambda (o)
+                             `(or (cdr (assoc ,(intern (symbol-name (first o)) :keyword)
+                                              ,query))
+                                  ,(second o)))
+                         os)))))
          (push-router ,method ,path #',handler-name)))))
 
 (defun handle-not-found (env)

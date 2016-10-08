@@ -6,6 +6,7 @@
                #:cl-json
                #:cl-ppcre
                #:clack
+               #:hu.dwim.uri
                #:let-plus)
   :serial t
   :components ((:file "package")
