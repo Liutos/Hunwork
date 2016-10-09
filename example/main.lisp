@@ -16,14 +16,16 @@
     (when (= (getf x :id) id)
       (return-from object-get x))))
 
-(define-handler :get "/[0-9]+" handler/get (request-uri)
+(define-handler :get "/[0-9]+" handler/get (&key
+                                            request-uri)
   (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
     (let ((obj (object-get id)))
       (if (null obj)
           (json:encode-json-to-string obj)
           (json:encode-json-plist-to-string obj)))))
 
-(define-handler :delete "/[0-9]+" handler/delete (request-uri)
+(define-handler :delete "/[0-9]+" handler/delete (&key
+                                                  request-uri)
   (let ((id (parse-integer (cl-ppcre:scan-to-strings "[0-9]+" request-uri))))
     (setf *program*
           (remove-if #'(lambda (x)

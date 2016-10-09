@@ -9,8 +9,9 @@
 
 (defun make-getf-form (env names)
   (flet ((f (name)
-           `(getf ,env ,(intern (symbol-name name) :keyword))))
-    (mapcar #'f names)))
+           `(,(caar name)
+             (getf ,env ,(intern (symbol-name (cadar name)) :keyword)))))
+    (mapcan #'f names)))
 
 (defun make-query-alist (env)
   (let* ((query-string
@@ -23,18 +24,19 @@
       (mapcar #'f queries))))
 
 (defmacro define-handler (method path name parameters &body body)
-  (let+ (((&values rs os)
+  (let+ (((&values rs os rest ks)
           (parse-ordinary-lambda-list parameters))
          (env (gensym))
          (handler-name (make-handler-name name))
          (query (gensym)))
-    (let ((envs (make-getf-form env rs)))
+    (let ((envs (make-getf-form env ks)))
       `(progn
          (defun ,name ,parameters
            ,@body)
          (defun ,handler-name (,env)
            (declare (ignorable ,env))
            (let* ((,query (make-query-alist ,env)))
+             (declare (ignorable ,query))
              (respond
               (,name
                ,@envs
